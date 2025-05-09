@@ -1,0 +1,63 @@
+@model MvcExample.Models.Book
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Book</title>
+    <style>
+        div {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add New Book</h1>
+    @using(Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div>
+            <label for="Title">Title:</label>
+            @Html.TextBoxFor(m=>m.Title)
+            @Html.ValidationMessageFor(m=>m.Title)
+        </div>
+        <div>
+            <label for="Author">Author:</label>
+            @Html.TextBoxFor(m=>m.Author)
+            @Html.ValidationMessageFor(m=>m.Author)
+        </div>
+        <div>
+            <label for="Publisher">Publisher:</label>
+            @Html.TextBoxFor(m=>m.Publisher)
+        </div>
+        <div>
+            <label for="PublishedYear">Year:</label>
+            @Html.TextBoxFor(m=>m.PublishedYear)
+        </div>
+        <div>
+            <label for="ISBN">ISBN Number:</label>
+            @Html.TextBoxFor(m=>m.ISBN)
+        </div>
+        <div>
+            <label for="Category">Category:</label>
+            @Html.TextBoxFor(m=>m.Category)
+        </div>
+        <div>
+            <label for="TotalCopies">Total Copies:</label>
+            @Html.TextBoxFor(m=>m.TotalCopies)
+        </div>
+        <div>
+            <label for="AvailableCopies">Available Copies:</label>
+            @Html.TextBoxFor(m=>m.AvailableCopies)
+        </div>
+        <div>
+            <input type="submit" value="Add"/>
+        </div>
+    }
+    <div>
+        <a href="@Url.Action("Index")">Back to List</a>
+    </div>
+</body>
+</html>

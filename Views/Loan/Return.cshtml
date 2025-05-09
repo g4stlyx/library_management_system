@@ -1,0 +1,67 @@
+@model MvcExample.Models.Loan
+
+@{
+    ViewData["Title"] = "Return Book";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Return Book</h1>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Confirm Return</h5>
+        </div>
+        <div class="card-body">
+            <p class="alert alert-info">
+                You are about to mark the following book as returned. This will update the inventory.
+            </p>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Book</div>
+                <div class="col-md-9">@Html.DisplayFor(model => model.Book.Title)</div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Member</div>
+                <div class="col-md-9">@Html.DisplayFor(model => model.User.FullName)</div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Borrowed Date</div>
+                <div class="col-md-9">@Model.BorrowedDate.ToString("yyyy-MM-dd")</div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Due Date</div>
+                <div class="col-md-9">@Model.DueDate.ToString("yyyy-MM-dd")</div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Status</div>
+                <div class="col-md-9">
+                    @if (DateTime.Now > Model.DueDate) {
+                        <span class="badge bg-danger">Overdue by @((int)(DateTime.Now - Model.DueDate).TotalDays) days</span>
+                    } else {
+                        <span class="badge bg-primary">On time</span>
+                    }
+                </div>
+            </div>
+            
+            <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Return Date</div>
+                <div class="col-md-9">@DateTime.Now.ToString("yyyy-MM-dd") (Today)</div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <form asp-action="ReturnConfirmed">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-success">Confirm Return</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </form>
+        </div>
+    </div>
+</div>
