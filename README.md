@@ -16,6 +16,7 @@ my first C# .NET project, it seems nice enough. includes:
 * user profile
 * sanitization and validation for all user inputs (both in frontend-maybe not- and backend)
 * searching, filtering, and sorting books, users (for admins), loans (for admins)
+* maybe a better frontend using bootstrap etc.
 
 ### TODO but a little bit advanced
 
