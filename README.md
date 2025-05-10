@@ -21,6 +21,7 @@ my first C# .NET project, it seems nice enough. includes:
 * sanitization and validation for all user inputs (both in frontend-maybe not- and backend) -will do on the term project, not here-
 * searching, filtering, and sorting books, users (for admins), loans (for admins)   -will do on the term project, not here-
 * maybe a better frontend using bootstrap etc. -will do on the term project, not here-
+* some endpoints should be specific to some specific users and admins (like checking user's id before some endpoints) -again, wont do it here. i want this one to end and stay as a little project, at least for now-
 
 ### TODO but a little bit advanced
 
