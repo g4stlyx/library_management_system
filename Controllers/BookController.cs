@@ -14,50 +14,66 @@ using Microsoft.EntityFrameworkCore;
 
 //! derste sadece book'la alakalı olan kısımlar işlendi. kalanlar ekstra
 
-namespace MvcExample.Controllers{
-    public class BookController : Controller{
+namespace MvcExample.Controllers
+{
+    public class BookController : Controller
+    {
         private readonly LibraryContext _context;
 
-        public BookController(LibraryContext context){
+        public BookController(LibraryContext context)
+        {
             _context = context;
         }
-        
-        public async Task<ActionResult> Index(){
+
+        public async Task<ActionResult> Index()
+        {
             var books = await _context.Books.ToListAsync();
             return View(books);
         }
-        
-        public ActionResult Create(){
+
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public ActionResult Create()
+        {
             return View();
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(Book book){
-            if (ModelState.IsValid){
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Create(Book book)
+        {
+            if (ModelState.IsValid)
+            {
                 _context.Books.Add(book);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(book);
         }
-        
-        public async Task<ActionResult> Edit(int id){
+
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Edit(int id)
+        {
             var book = await _context.Books.FindAsync(id);
-            if (book == null){
+            if (book == null)
+            {
                 return NotFound();
             }
             return View(book);
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(int id, Book book){
-            if (id != book.Id){
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Edit(int id, Book book)
+        {
+            if (id != book.Id)
+            {
                 return NotFound();
             }
 
-            if (ModelState.IsValid){
+            if (ModelState.IsValid)
+            {
                 try
                 {
                     _context.Update(book);
@@ -78,28 +94,65 @@ namespace MvcExample.Controllers{
             }
             return View(book);
         }
-        
-        public async Task<ActionResult> Delete(int id){
+
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Delete(int id)
+        {
             var book = await _context.Books.FindAsync(id);
-            if (book == null){
+            if (book == null)
+            {
                 return NotFound();
             }
             return View(book);
         }
-        
+        public async Task<ActionResult> Details(int id)
+        {
+            var book = await _context.Books
+                .Include(b => b.Loans)
+                .ThenInclude(l => l.User)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            // If not admin, only show user's own loans
+            if (!User.IsInRole("Admin") && User.Identity.IsAuthenticated)
+            {
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    // Filter the loans to only show the current user's loans
+                    book.Loans = book.Loans.Where(l => l.UserId == userId).ToList();
+                }
+                else
+                {
+                    // If unable to determine user, show no loans
+                    book.Loans = new List<Loan>();
+                }
+            }
+
+            return View(book);
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(int id){
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
             var book = await _context.Books.FindAsync(id);
-            if (book != null){
+            if (book != null)
+            {
                 _context.Books.Remove(book);
                 await _context.SaveChangesAsync();
             }
-            
+
             return RedirectToAction(nameof(Index));
         }
-        
-        private bool BookExists(int id){
+
+        private bool BookExists(int id)
+        {
             return _context.Books.Any(e => e.Id == id);
         }
     }

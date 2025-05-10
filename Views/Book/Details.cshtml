@@ -1,0 +1,151 @@
+@model MvcExample.Models.Book
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>Book Details</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">@Model.Title</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="book-cover bg-light d-flex justify-content-center align-items-center border"
+                        style="height: 200px; width: 150px">
+                        <i class="bi bi-book" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Title</div>
+                        <div class="col-md-9">@Model.Title</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Author</div>
+                        <div class="col-md-9">@Model.Author</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">ISBN</div>
+                        <div class="col-md-9">@Model.ISBN</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Publisher</div>
+                        <div class="col-md-9">@Model.Publisher</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Published Year</div>
+                        <div class="col-md-9">@Model.PublishedYear</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Category</div>
+                        <div class="col-md-9">@Model.Category</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-3 fw-bold">Availability</div>
+                        <div class="col-md-9">
+                            @if (Model.AvailableCopies > 0)
+                            {
+                                <span class="badge bg-success">@Model.AvailableCopies of @Model.TotalCopies available</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Not available</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr /> @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+            {
+                <h5>Loan History</h5>
+            }
+                        else if (User?.Identity?.IsAuthenticated == true)
+            {
+                <h5>My Loan History with this Book</h5>
+            }
+            else
+            {
+                <h5>Loan History</h5>
+            }
+            @if (Model.Loans != null && Model.Loans.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                            {
+                                <th>User</th>
+                            }
+                            <th>Borrowed Date</th>
+                            <th>Due Date</th>
+                            <th>Returned Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loan in Model.Loans.OrderByDescending(l => l.BorrowedDate))
+                        {
+                            <tr>
+                                @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                                {
+                                    <td>
+                                        <a asp-controller="User" asp-action="Details" asp-route-id="@loan.UserId">
+                                            @loan.User.FullName
+                                        </a>
+                                    </td>
+                                }
+                                <td>@loan.BorrowedDate.ToString("yyyy-MM-dd")</td>
+                                <td>@loan.DueDate.ToString("yyyy-MM-dd")</td>
+                                <td>@(loan.ReturnedDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                <td>
+                                    @if (loan.ReturnedDate != null)
+                                    {
+                                        <span class="badge bg-success">Returned</span>
+                                    }
+                                    else if (DateTime.Now > loan.DueDate)
+                                    {
+                                        <span class="badge bg-danger">Overdue</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary">Active</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No loan history available for this book.</p>
+            }
+        </div>
+        <div class="card-footer">
+            <div class="btn-group" role="group">
+                @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+                }
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>
+

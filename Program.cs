@@ -80,18 +80,17 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Delete and recreate the database on startup
+// Ensure the database exists and apply any pending migrations
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<LibraryContext>();
     var configuration = services.GetRequiredService<IConfiguration>(); // Get IConfiguration
     
-    // Delete and recreate database
-    context.Database.EnsureDeleted();
+    // Ensure database is created (without deleting first)
     context.Database.EnsureCreated();
 
-    // Seed an admin user
+    // Seed an admin user only if it doesn't already exist
     if (!context.Users.Any(u => u.Username == "g4"))
     {
         var salt = CreateSalt();
