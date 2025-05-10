@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MvcExample.Data;
 using MvcExample.Models;
+using MvcExample.Utils;
+using MvcExample.Filters;
 
 namespace MvcExample.Controllers
 {
@@ -91,8 +93,8 @@ namespace MvcExample.Controllers
             TempData["SuccessMessage"] = $"You have successfully borrowed '{book.Title}'. It is due on {loan.DueDate:yyyy-MM-dd}.";
             return RedirectToAction(nameof(MyLoans));
         }
-
         // GET: Loan/Details/5
+        // [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -107,6 +109,13 @@ namespace MvcExample.Controllers
             if (loan == null)
             {
                 return NotFound();
+            }
+
+            // Check if the user has access to this loan
+            var accessCheck = AuthUtils.EnsureUserAccess(this, User, loan.UserId);
+            if (accessCheck != null)
+            {
+                return accessCheck;
             }
 
             return View(loan);
@@ -261,6 +270,73 @@ namespace MvcExample.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Loan/ReturnMy/5
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> ReturnMy(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            // Get the current user's ID
+            if (!AuthUtils.TryGetUserId(User, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (loan == null || loan.ReturnedDate != null)
+            {
+                TempData["ErrorMessage"] = "The requested loan was not found or already returned.";
+                return RedirectToAction(nameof(MyLoans));
+            }
+
+            return View(loan);
+        }
+
+        // POST: Loan/ReturnMyConfirmed/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> ReturnMyConfirmed(int id)
+        {
+            // Get the current user's ID
+            if (!AuthUtils.TryGetUserId(User, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var loan = await _context.Loans
+                .Include(l => l.Book)
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (loan == null || loan.ReturnedDate != null)
+            {
+                TempData["ErrorMessage"] = "The requested loan was not found or already returned.";
+                return RedirectToAction(nameof(MyLoans));
+            }
+
+            // Mark as returned
+            loan.ReturnedDate = DateTime.Now;
+
+            // Increment available copies
+            var book = await _context.Books.FindAsync(loan.BookId);
+            if (book != null)
+            {
+                book.AvailableCopies++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"You have successfully returned '{loan.Book.Title}'.";
+            return RedirectToAction(nameof(MyLoans));
         }
 
         // GET: Loan/Delete/5

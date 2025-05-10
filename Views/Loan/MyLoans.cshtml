@@ -48,6 +48,11 @@
                                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
                                         <i class="fas fa-info-circle"></i> Details
                                     </a>
+                                    @if (item.ReturnedDate == null) {
+                                        <a asp-action="ReturnMy" asp-route-id="@item.Id" class="btn btn-sm btn-success">
+                                            <i class="fas fa-undo"></i> Return
+                                        </a>
+                                    }
                                 </div>
                             </td>
                         </tr>

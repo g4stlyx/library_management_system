@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using MvcExample.Data;
 using MvcExample.Models;
+using MvcExample.Utils;
+using MvcExample.Filters;
 
 namespace web12.Controllers
 {
@@ -29,6 +31,31 @@ namespace web12.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Users.ToListAsync());
+        }
+
+        // GET: User/Profile - Available to any authenticated user to view their own profile
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            // Get current user ID from claims
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+            
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users
+                .Include(u => u.Loans)
+                .ThenInclude(l => l.Book)
+                .FirstOrDefaultAsync(m => m.Id == userId);
+                
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
         }
 
         // GET: User/Details/5
@@ -178,6 +205,65 @@ namespace web12.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
+            }
+            return View(user);
+        }
+
+        // GET: User/EditProfile
+        [Authorize]
+        public async Task<IActionResult> EditProfile()
+        {
+            // Get current user ID from claims
+            if (!AuthUtils.TryGetUserId(User, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            
+            return View(user);
+        }
+        
+        // POST: User/EditProfile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> EditProfile([Bind("FullName,Email,PhoneNumber")] User userUpdate)
+        {
+            if (!AuthUtils.TryGetUserId(User, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Only update allowed fields
+                    user.FullName = userUpdate.FullName;
+                    user.Email = userUpdate.Email;
+                    user.PhoneNumber = userUpdate.PhoneNumber;
+                    
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                    
+                    TempData["SuccessMessage"] = "Your profile was updated successfully.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Profile));
             }
             return View(user);
         }

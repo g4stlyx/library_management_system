@@ -1,0 +1,119 @@
+@model MvcExample.Models.User
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h1>My Profile</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Full Name</div>
+                        <div class="col-md-8">@Model.FullName</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Username</div>
+                        <div class="col-md-8">@Model.Username</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Email</div>
+                        <div class="col-md-8">@Model.Email</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Phone Number</div>
+                        <div class="col-md-8">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "-" : Model.PhoneNumber)</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Member Since</div>
+                        <div class="col-md-8">@Model.DateJoined.ToString("yyyy-MM-dd")</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-4 fw-bold">Account Type</div>
+                        <div class="col-md-8">
+                            @if (Model.IsAdmin)
+                            {
+                                <span class="badge bg-danger">Administrator</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Standard User</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Account Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-md-6 fw-bold">Total Loans</div>
+                        <div class="col-md-6">@Model.Loans.Count</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-6 fw-bold">Active Loans</div>
+                        <div class="col-md-6">@Model.Loans.Count(l => l.ReturnedDate == null)</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-6 fw-bold">Returned Books</div>
+                        <div class="col-md-6">@Model.Loans.Count(l => l.ReturnedDate != null)</div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-md-6 fw-bold">Overdue Books</div>
+                        <div class="col-md-6">
+                            @{
+                                var overdueCount = Model.Loans.Count(l => l.ReturnedDate == null && l.DueDate < DateTime.Now);
+                            }
+                            @if (overdueCount > 0)
+                            {
+                                <span class="text-danger fw-bold">@overdueCount</span>
+                            }
+                            else
+                            {
+                                <span>0</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a asp-controller="Loan" asp-action="MyLoans" class="btn btn-primary">
+                            <i class="fas fa-book-reader"></i> My Loans
+                        </a>
+                        <a asp-action="EditProfile" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
