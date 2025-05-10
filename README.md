@@ -7,22 +7,26 @@ my first C# .NET project, it seems nice enough. includes:
 * Sqlite
 * Books, Users, Loans
 
+### Auth
+
+* admins see everything
+* every user sees every book
+    * can take them on loan. -normally this would require a request-confirmation mechanism, but not here-
+* every user sees only their own loans.
+* users dont see any user.
+
 ### TODO
 
-* admins sees everything
-* everybody sees every book
-* users sees only their loans
-* users dont see any user
-* user profile
-* sanitization and validation for all user inputs (both in frontend-maybe not- and backend)
-* searching, filtering, and sorting books, users (for admins), loans (for admins)
-* maybe a better frontend using bootstrap etc.
+* user profile -will do on the term project, not here-
+* sanitization and validation for all user inputs (both in frontend-maybe not- and backend) -will do on the term project, not here-
+* searching, filtering, and sorting books, users (for admins), loans (for admins)   -will do on the term project, not here-
+* maybe a better frontend using bootstrap etc. -will do on the term project, not here-
 
 ### TODO but a little bit advanced
 
-* password changing
-* email validation
-* forgot password
-* friend functionality. users see their friends loans -ik its not that logical-
+* password changing -will do on the term project, not here-
+* email validation -will do on the term project, not here-
+* forgot password -will do on the term project, not here-
+* friend functionality. users see their friends loans -ik its not that logical-      -will do on the term project, not here-
 * MFA?
 * read, reading, to read lists?

@@ -50,6 +50,48 @@ namespace MvcExample.Controllers
             return View(loans);
         }
 
+        // GET: Loan/Borrow/5
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> Borrow(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Books.FindAsync(id);
+            if (book == null || book.AvailableCopies <= 0)
+            {
+                TempData["ErrorMessage"] = "This book is not available for borrowing.";
+                return RedirectToAction("Index", "Book");
+            }
+
+            // Get the current user's ID from the JWT token claims
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            // Create a new loan
+            var loan = new Loan
+            {
+                BookId = book.Id,
+                UserId = userId,
+                BorrowedDate = DateTime.Now,
+                DueDate = DateTime.Now.AddDays(14)  // 2 weeks loan period
+            };
+
+            // Reduce available copies
+            book.AvailableCopies--;
+
+            _context.Loans.Add(loan);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"You have successfully borrowed '{book.Title}'. It is due on {loan.DueDate:yyyy-MM-dd}.";
+            return RedirectToAction(nameof(MyLoans));
+        }
+
         // GET: Loan/Details/5
         public async Task<IActionResult> Details(int? id)
         {
